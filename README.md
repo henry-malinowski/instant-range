@@ -16,7 +16,7 @@ This lets players and GMs quickly check if a token is in the near or far range o
 
 ## Example
 
-<video src="https://raw.githubusercontent.com/henry-malinowski/instant-range/refs/heads/main/github-assets/example-usage.mp4" width="512" height="512" controls></video>
+<video src="https://github.com/henry-malinowski/instant-range/raw/refs/heads/main/github-assets/example-usage.mp4" width="512" height="512" controls></video>
 
 ## Settings
 
