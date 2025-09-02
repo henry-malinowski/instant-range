@@ -1,0 +1,10 @@
+{
+  "instant-range": {
+    "SETTINGS": {
+      "allowHoverOutOfCombatName": "Allow hover out of combat",
+      "allowHoverOutOfCombatHint": "If enabled, shows distance to hovered token even when no combat is active.",
+      "realtimeUpdateName": "Real-time update",
+      "realtimeUpdateHint": "Update measurement as often as required (may slightly impact performance while moving)."
+    }
+  }
+}

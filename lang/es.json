@@ -1,0 +1,10 @@
+{
+  "instant-range": {
+    "SETTINGS": {
+      "allowHoverOutOfCombatName": "Permitir la medición fuera de combate",
+      "allowHoverOutOfCombatHint": "Si está habilitado, muestra la distancia al token sobre el que se pasa el cursor, incluso cuando no hay combate activo.",
+      "realtimeUpdateName": "Actualización en tiempo real",
+      "realtimeUpdateHint": "Actualiza la medición tan a menudo como sea necesario (puede afectar ligeramente el rendimiento al moverse)."
+    }
+  }
+}
