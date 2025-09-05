@@ -25,7 +25,7 @@ https://github.com/user-attachments/assets/0f1f5eaf-60e8-4292-9ea1-afe3b575d6a2
 
 ## Installation Instructions
 
-To install and use the instant-range module for Foundry Virtual Tabletop, simply paste the following URL into the **Install System** dialog on the Setup menu of the application.
+To install and use the instant-range module for Foundry Virtual Tabletop, simply paste the following URL into the **Install Module** dialog on the Setup menu of the application.
 
 `https://raw.githubusercontent.com/henry-malinowski/instant-range/master/module.json`
 
