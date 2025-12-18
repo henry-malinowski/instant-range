@@ -1,10 +1,18 @@
 {
   "instant-range": {
-    "SETTINGS": {
-      "allowHoverOutOfCombatName": "Allow hover out of combat",
-      "allowHoverOutOfCombatHint": "If enabled, shows distance to hovered token even when no combat is active.",
-      "realtimeUpdateName": "Real-time update",
-      "realtimeUpdateHint": "Update measurement as often as required (may slightly impact performance while moving)."
+    "settings": {
+      "allowHoverOutOfCombat": {
+        "name": "Allow hover out of combat",
+        "hint": "If enabled, shows distance to hovered token even when no combat is active."
+      },
+      "realtimeUpdate": {
+        "name": "Real-time update",
+        "hint": "Update measurement as often as required (may slightly impact performance while moving)."
+      }
+    },
+    "warnings": {
+      "conflictDetected": "Instant Range detected a conflicting module: {name} ({id}). Only one hover-distance module should be active at a time.",
+      "failedToRegisterWrappers": "Instant Range failed to register its libWrapper hooks. Package: {package_id}, error: {error_name}."
     }
   }
 }

@@ -1,10 +1,18 @@
 {
   "instant-range": {
-    "SETTINGS": {
-      "allowHoverOutOfCombatName": "Permitir la medición fuera de combate",
-      "allowHoverOutOfCombatHint": "Si está habilitado, muestra la distancia al token sobre el que se pasa el cursor, incluso cuando no hay combate activo.",
-      "realtimeUpdateName": "Actualización en tiempo real",
-      "realtimeUpdateHint": "Actualiza la medición tan a menudo como sea necesario (puede afectar ligeramente el rendimiento al moverse)."
+    "settings": {
+      "allowHoverOutOfCombat": {
+        "name": "Permitir la medición fuera de combate",
+        "hint": "Si está habilitado, muestra la distancia al token sobre el que se pasa el cursor, incluso cuando no hay combate activo."
+      },
+      "realtimeUpdate": {
+        "name": "Actualización en tiempo real",
+        "hint": "Actualiza la medición tan a menudo como sea necesario (puede afectar ligeramente el rendimiento al moverse)."
+      }
+    },
+    "warnings": {
+      "conflictDetected": "Instant Range ha detectado un módulo en conflicto: {name} ({id}). Solo uno de los módulos de distancia al pasar el cursor debe estar activo a la vez.",
+      "failedToRegisterWrappers": "Instant Range no pudo registrar sus enlaces de libWrapper. Paquete: {package_id}, error: {error_name}."
     }
   }
 }
