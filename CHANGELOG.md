@@ -1,3 +1,6 @@
+## v2.0.2
+Fixed distance text appearing underneath tokens. (fixes issue #4)
+
 ## v2.0.1
 Improved compatibility with Health Estimate in the top position.
 

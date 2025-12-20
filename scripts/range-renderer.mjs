@@ -306,7 +306,7 @@ function getBestPathBetween(sourceToken, sourceElevation, targetToken, targetEle
 }
 
 /**
- * Core render step: validate state, measure distance, attach label, and display it.
+ * Core render step: validate state, measure distance, update label position, and display it.
  * @param {object} [state] - Renderer state; fetched if omitted.
  */
 function renderNow(state) {
@@ -323,7 +323,6 @@ function renderNow(state) {
 
 	const measurement = getMeasurement(working, controlled, target);
 
-	attachToTarget(working, target);
 	updateLabel(working, measurement, target);
 	showLabel(working);
 }
@@ -361,6 +360,56 @@ function getMeasurement(state, sourceToken, targetToken) {
 }
 
 /**
+ * Calculate vertical offset to avoid collision with HealthEstimate when positioned above token.
+ * @param {Token} targetToken - The token being hovered.
+ * @returns {number} Vertical offset in pixels (0 indicates no adjustment is needed).
+ */
+function calculateHealthEstimateOffset(targetToken) {
+	// Only apply offset if HealthEstimate is active, positioned above, and has a valid visible text object
+	if (game?.healthEstimate?.position !== "a") return 0;
+
+	// Try to get the actual HealthEstimate text object for accurate height measurement
+	// This accounts for padding, stroke, drop shadow, and actual text content
+	const healthEstimateText = targetToken.healthEstimate;
+
+	// Only proceed if we have a valid, visible text object
+	if (!healthEstimateText?.height || !healthEstimateText.visible || !healthEstimateText.style) return 0;
+
+	const he = game.healthEstimate;
+
+	// Compute the same scaling factors HealthEstimate uses
+	const gridScale = he.scaleToGridSize ? canvas.scene.dimensions.size / 100 : 1;
+	const tokenScale = he.scaleToTokenSize ? targetToken.document.width : 1;
+
+	// Use actual rendered height, accounting for the scale applied to the object
+	// HealthEstimate scales the text object by: tokenScale * 0.25
+	// Note: zoomLevel is already accounted for in the text object's height since
+	// HealthEstimate creates the text with scaledFontSize which includes zoomLevel
+	const visualHeight = healthEstimateText.height * (tokenScale * 0.25);
+
+	// Calculate HealthEstimate's actual edges in pixel coordinates
+	// HealthEstimate's y position is: -2 + he.height (anchor at bottom center)
+	// Bottom edge (closest to token) = he.height - 2
+	// Top edge (farthest from token) = he.height - 2 - visualHeight
+	const healthEstimateBottom = he.height - 2;
+	const healthEstimateTop = he.height - 2 - visualHeight;
+
+	// Only adjust if HealthEstimate's bottom edge is high enough above the token
+	// to avoid conflict; if it's too close, there's space underneath instead
+	// Threshold scales with gridScale to maintain proportional behavior
+	// TODO: replace magic numbers when font customization is implemented.
+	const threshold = -28 * gridScale;
+	if (healthEstimateBottom >= threshold) {
+		// Position instant-range above HealthEstimate's top edge with appropriate gap
+		// Gap scales with gridScale to maintain proportional spacing
+		const gap = 22 * gridScale;
+		return healthEstimateTop - gap;
+	}
+
+	return 0;
+}
+
+/**
  * Layout and position the shared label relative to the target token using the latest measurement.
  * Expects `state.labelContainer`, `distanceLabel`, and `iconLabel` to be present.
  */
@@ -382,85 +431,29 @@ function updateLabel(state, measurement, targetToken) {
 	iconText.position.set(iconX, 0);
 	distanceText.position.set(distanceX, 0);
 
-	let offsetY = 0;
-	// health estimate specific adjustment if position is above the token.
-	// Only apply offset if HealthEstimate is active, positioned above, and has a valid visible text object
-	if (game?.healthEstimate?.position === "a") {
-		// Try to get the actual HealthEstimate text object for accurate height measurement
-		// This accounts for padding, stroke, drop shadow, and actual text content
-		const healthEstimateText = targetToken.healthEstimate;
-		
-		// Only proceed if we have a valid, visible text object
-		if (healthEstimateText?.height && healthEstimateText.visible && healthEstimateText.style) {
-			const he = game.healthEstimate;
-			
-			// Compute the same scaling factors HealthEstimate uses
-			const gridScale = he.scaleToGridSize ? canvas.scene.dimensions.size / 100 : 1;
-			const tokenScale = he.scaleToTokenSize ? targetToken.document.width : 1;
-
-			// Use actual rendered height, accounting for the scale applied to the object
-			// HealthEstimate scales the text object by: tokenScale * 0.25
-			// Note: zoomLevel is already accounted for in the text object's height since
-			// HealthEstimate creates the text with scaledFontSize which includes zoomLevel
-			const visualHeight = healthEstimateText.height * (tokenScale * 0.25);
-
-			// Calculate HealthEstimate's actual edges in pixel coordinates
-			// HealthEstimate's y position is: -2 + he.height (anchor at bottom center)
-			// Bottom edge (closest to token) = he.height - 2
-			// Top edge (farthest from token) = he.height - 2 - visualHeight
-			const healthEstimateBottom = he.height - 2;
-			const healthEstimateTop = he.height - 2 - visualHeight;
-
-			// Only adjust if HealthEstimate's bottom edge is high enough above the token
-			// to avoid conflict; if it's too close, there's space underneath instead
-			// Threshold scales with gridScale to maintain proportional behavior
-			const threshold = -28 * gridScale;
-			if (healthEstimateBottom >= threshold) {
-				// Position instant-range above HealthEstimate's top edge with appropriate gap
-				// Gap scales with gridScale to maintain proportional spacing
-				const gap = 22 * gridScale;
-				offsetY = healthEstimateTop - gap;
-			}
-		}
-	}
-	// Position the label container above the token, accounting for HealthEstimate if active.
-	labelContainer.position.set(targetToken.w / 2, offsetY);
+	const offsetY = calculateHealthEstimateOffset(targetToken);
+	const tokenCenterX = targetToken.x + (targetToken.w / 2);
+	const tokenCenterY = targetToken.y;
+	labelContainer.position.set(tokenCenterX, tokenCenterY + offsetY);
 	labelContainer.scale.set(uiScale);
 }
 
 /**
- * Hide the label and park it back on the interface group container.
+ * Hide the label.
  * @param {object} state - Renderer state.
  */
 function hideLabel(state) {
-	const { tokenHudContainer, interfaceContainer } = state;
-	tokenHudContainer.visible = false;
-	if (tokenHudContainer.parent !== interfaceContainer) {
-		tokenHudContainer.parent.removeChild(tokenHudContainer);
-		interfaceContainer.addChild(tokenHudContainer);
-	}
+	state.tokenHudContainer.visible = false;
 }
 
 /**
- * Show the label on its current parent (typically the hovered token).
+ * Show the label (container stays in interface layer).
  * @param {object} state - Renderer state.
  */
 function showLabel(state) {
 	state.tokenHudContainer.visible = true;
 }
 
-/**
- * Re-parent the label container onto the target token so it moves with it.
- * @param {object} state - Renderer state.
- * @param {Token} targetToken - The token to attach to.
- */
-function attachToTarget(state, targetToken) {
-	const { tokenHudContainer } = state;
-	if (tokenHudContainer.parent !== targetToken) {
-		tokenHudContainer.parent.removeChild(tokenHudContainer);
-		targetToken.addChild(tokenHudContainer);
-	}
-}
 /**
  * Restore the Elevation tooltip of the token.
  * @param {string} tokenId - The ID of the token to restore the tooltip of.
