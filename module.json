@@ -2,7 +2,7 @@
     "id": "instant-range",
     "title": "Instant Range",
     "description": "Highlights hovered tokens and shows the distance from your controlled token, respecting grid and world measurement settings.",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "compatibility": {
       "minimum": "13",
       "verified": "14.352",

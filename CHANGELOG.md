@@ -1,3 +1,6 @@
+## v2.0.1
+Improved compatibility with Health Estimate in the top position.
+
 ## v2.0.0
 ### Feature
 * Players no longer need to select there token before measuring distance. Distance is automatic if the user has a player character configured and there is exactly one on the current scene. 

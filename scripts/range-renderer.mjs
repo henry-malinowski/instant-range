@@ -384,9 +384,44 @@ function updateLabel(state, measurement, targetToken) {
 
 	let offsetY = 0;
 	// health estimate specific adjustment if position is above the token.
-	if (game?.healthEstimate?.position === "a")  
-	{
-		if (game.healthEstimate.height >= -28) offsetY = (game.healthEstimate.height - (game.healthEstimate.fontSize + 2));
+	// Only apply offset if HealthEstimate is active, positioned above, and has a valid visible text object
+	if (game?.healthEstimate?.position === "a") {
+		// Try to get the actual HealthEstimate text object for accurate height measurement
+		// This accounts for padding, stroke, drop shadow, and actual text content
+		const healthEstimateText = targetToken.healthEstimate;
+		
+		// Only proceed if we have a valid, visible text object
+		if (healthEstimateText?.height && healthEstimateText.visible && healthEstimateText.style) {
+			const he = game.healthEstimate;
+			
+			// Compute the same scaling factors HealthEstimate uses
+			const gridScale = he.scaleToGridSize ? canvas.scene.dimensions.size / 100 : 1;
+			const tokenScale = he.scaleToTokenSize ? targetToken.document.width : 1;
+
+			// Use actual rendered height, accounting for the scale applied to the object
+			// HealthEstimate scales the text object by: tokenScale * 0.25
+			// Note: zoomLevel is already accounted for in the text object's height since
+			// HealthEstimate creates the text with scaledFontSize which includes zoomLevel
+			const visualHeight = healthEstimateText.height * (tokenScale * 0.25);
+
+			// Calculate HealthEstimate's actual edges in pixel coordinates
+			// HealthEstimate's y position is: -2 + he.height (anchor at bottom center)
+			// Bottom edge (closest to token) = he.height - 2
+			// Top edge (farthest from token) = he.height - 2 - visualHeight
+			const healthEstimateBottom = he.height - 2;
+			const healthEstimateTop = he.height - 2 - visualHeight;
+
+			// Only adjust if HealthEstimate's bottom edge is high enough above the token
+			// to avoid conflict; if it's too close, there's space underneath instead
+			// Threshold scales with gridScale to maintain proportional behavior
+			const threshold = -28 * gridScale;
+			if (healthEstimateBottom >= threshold) {
+				// Position instant-range above HealthEstimate's top edge with appropriate gap
+				// Gap scales with gridScale to maintain proportional spacing
+				const gap = 22 * gridScale;
+				offsetY = healthEstimateTop - gap;
+			}
+		}
 	}
 	// Position the label container above the token, accounting for HealthEstimate if active.
 	labelContainer.position.set(targetToken.w / 2, offsetY);
