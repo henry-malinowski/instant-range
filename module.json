@@ -2,7 +2,7 @@
     "id": "instant-range",
     "title": "Instant Range",
     "description": "Highlights hovered tokens and shows the distance from your controlled token, respecting grid and world measurement settings.",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "compatibility": {
       "minimum": "13",
       "verified": "14.352",
@@ -33,7 +33,7 @@
     ],
     "url": "https://github.com/henry-malinowski/instant-range",
     "manifest": "https://raw.githubusercontent.com/henry-malinowski/instant-range/refs/heads/main/module.json",
-    "download": "https://github.com/henry-malinowski/instant-range/releases/download/v2.0.2/module.zip",
+    "download": "https://github.com/henry-malinowski/instant-range/releases/download/v2.0.3/module.zip",
     "readme": "https://github.com/henry-malinowski/instant-range/blob/main/README.md",
     "changelog": "https://github.com/henry-malinowski/instant-range/blob/main/CHANGELOG.md",
     "license": "MIT",

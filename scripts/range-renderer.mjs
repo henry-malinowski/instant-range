@@ -221,7 +221,7 @@ function createState(interfaceContainer) {
  */
 function isEnabled() {
 	if (!canvas?.ready) return false;
-	if (!!game.combat?.active) return true;
+	if (!!game.combats?.active) return true;
 	// Read cached flag from the module instance to avoid repeated settings lookups.
 	return game.modules.get("instant-range").instance.settings.allowHoverOutOfCombat;
 }
