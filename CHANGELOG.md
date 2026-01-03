@@ -1,3 +1,6 @@
+## v2.0.3
+Fixed distance text not correctly detecting active combat. (fixed issue #8)
+
 ## v2.0.2
 Fixed distance text appearing underneath tokens. (fixes issue #4)
 
