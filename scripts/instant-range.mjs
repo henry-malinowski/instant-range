@@ -6,7 +6,7 @@ import {
 	onDeleteToken,
 	onUpdateCombat,
 	onDeleteCombat,
-	registerCanvasGroup
+	onDrawPrimaryCanvasGroup
 } from "./range-renderer.mjs";
 
 const MODULE_ID = "instant-range";
@@ -53,14 +53,14 @@ const COMMON_HOOKS = [
 	{ name: "controlToken", callback: onControlToken },
 	{ name: "deleteToken", callback: onDeleteToken },
 	{ name: "updateCombat", callback: onUpdateCombat },
-	{ name: "deleteCombat", callback: onDeleteCombat }
+	{ name: "deleteCombat", callback: onDeleteCombat },
+	{ name: "drawPrimaryCanvasGroup", callback: onDrawPrimaryCanvasGroup }
 ];
 
 /**
  * Initialize the module's settings.
  */
 function onceInit() {
-	registerCanvasGroup();
 	for (const setting of SETTINGS) {
 		game.settings.register(MODULE_ID, setting.id, {
 			...setting

@@ -1,6 +1,7 @@
 const { PreciseText } = foundry.canvas.containers;
 
-const GROUP_KEY = "instantRangeInterface";
+// Module-level state storage (not tied to container lifecycle)
+let moduleState = null;
 
 const BASE_TEXT_STYLE_PROPERTIES = () => ({
 	...CONFIG.canvasTextStyle,
@@ -24,26 +25,25 @@ const DISTANCE_TEXT_STYLE_PROPERTIES = {
 };
 
 /**
- * Register a dedicated interface group so state is owned by the group instance.
+ * Initialize the container when PrimaryCanvasGroup is drawn (which contains tokens).
+ * This hook is called after PrimaryCanvasGroup._draw() completes.
+ * The container is added to the interface layer so it appears above tokens.
+ * @param {PrimaryCanvasGroup} _primaryGroup - The PrimaryCanvasGroup instance (unused, but tokens are in this group)
  */
-export function registerCanvasGroup() {
-	CONFIG.Canvas.groups[GROUP_KEY] = {
-		parent: "interface",
-		groupClass: class InstantRangeGroup extends PIXI.Container {
-			async draw() {
-				this.sortableChildren = true;
-				this.zIndex = CONFIG.Canvas.groups.interface?.zIndexScrollingText ?? 0;
-				this._state ??= createState(this);
-				return this;
-			}
-
-			async tearDown() {
-				const children = this.removeChildren();
-				for (const child of children) child.destroy?.({ children: true });
-				this._state = null;
-			}
-		}
-	};
+export function onDrawPrimaryCanvasGroup(_primaryGroup) {
+	if (!canvas?.ready) return;
+	
+	const interfaceGroup = canvas?.interface;
+	if (!interfaceGroup) return;
+	
+	// Create a regular PIXI container (not a registered canvas group)
+	const container = new PIXI.Container();
+	container.sortableChildren = true;
+	container.zIndex = CONFIG.Canvas.groups.interface?.zIndexScrollingText ?? 0;
+	
+	interfaceGroup.addChild(container);
+	
+	moduleState = createState(container);
 }
 
 /**
@@ -52,6 +52,7 @@ export function registerCanvasGroup() {
  * @returns {string|null}
  */
 export function getCurrentHoveredTokenId() {
+	if (!canvas?.ready) return null;
 	const state = getState();
 	return state?.hoveredTokenId ?? null;
 }
@@ -65,7 +66,7 @@ export function getCurrentHoveredTokenId() {
 export function onHoverToken(token, isHovered) {
 	// Get renderer state, and clear if the token is not hovered.
 	const state = getState();
-	if (!isHovered) return clear();
+	if (!state || !isHovered) return clear();
 
 	// If the module is not enabled, return.
 	if (!isEnabled()) return;
@@ -87,18 +88,15 @@ export function onHoverToken(token, isHovered) {
  * @returns void
  */
 export function onRefreshToken(token, options) {
-	if (!isEnabled()) return;
 	const state = getState();
+	if (!state || !isEnabled()) return;
 
 	const controlled = getControlledToken() ?? getUserCharacterToken();
 	const hoveredId = state.hoveredTokenId;
 	if (!controlled || !hoveredId) return;
 
 	const refreshedId = token?.id;
-	const isControlled = controlled?.id === refreshedId;
-	const isHovered = hoveredId === refreshedId;
-
-	if (isControlled || isHovered) renderNow(state);
+	if (controlled.id === refreshedId || hoveredId === refreshedId) renderNow(state);
 }
 
 /**
@@ -116,8 +114,8 @@ export function onControlToken(_token, controlled) {
  */
 export function onDeleteToken(tokenDocument) {
 	const state = getState();
+	if (!state) return;
 	const deletedId = tokenDocument?.id ?? tokenDocument?._id;
-	// Clear UI only if the deleted token was the current hover target or the controller.
 	const hoveredId = state.hoveredTokenId;
 	const controlled = getControlledToken() ?? getUserCharacterToken();
 	if ((hoveredId && hoveredId === deletedId) || (controlled && controlled.id === deletedId)) {
@@ -133,9 +131,7 @@ export function onDeleteToken(tokenDocument) {
  * @param {string} _userId
  */
 export function onUpdateCombat(_combat, _changes, _options, _userId) {
-	const state = getState();
-	// Reset hover UI on combat changes when we had an active hover target.
-	if (state.hoveredTokenId) clear();
+	if (getState()?.hoveredTokenId) clear();
 }
 
 /**
@@ -145,16 +141,16 @@ export function onUpdateCombat(_combat, _changes, _options, _userId) {
  * @param {string} _userId
  */
 export function onDeleteCombat(_combat, _options, _userId) {
-	const state = getState();
-	// Reset hover UI on combat deletion when we had an active hover target.
-	if (state.hoveredTokenId) clear();
+	if (getState()?.hoveredTokenId) clear();
 }
 
 /**
  * Clear current hover state, hide UI, and restore the hovered token's tooltip.
  */
 export function clear() {
+	if (!canvas?.ready) return;
 	const working = getState();
+	if (!working) return;
 	const previousHoveredId = working.hoveredTokenId;
 	working.hoveredTokenId = null;
 
@@ -163,27 +159,37 @@ export function clear() {
 }
 
 /**
- * Retrieve (or lazily create) the renderer state from the interface group container.
- * @returns {object|null} The state bag, or null if the group is unavailable.
+ * Retrieve the renderer state.
+ * State is created by the drawPrimaryCanvasGroup hook, or lazily here if needed.
+ * @returns {object|null} The state bag, or null if unavailable.
  */
 function getState() {
-	const group = canvas?.interface?.[GROUP_KEY] ?? null;
-	if (!group) throw new Error("Instant Range: canvas group is not registered on canvas.interface");
-	if (!group._state) group._state = createState(group);
-	return group._state;
+	if (!canvas?.ready) return null;
+	
+	// If state doesn't exist or container is destroyed, try to create it lazily
+	if (!moduleState || moduleState.container?.destroyed) {
+		const interfaceGroup = canvas.interface;
+		if (!interfaceGroup) return moduleState = null;
+		
+		const container = new PIXI.Container();
+		container.sortableChildren = true;
+		container.zIndex = CONFIG.Canvas.groups.interface?.zIndexScrollingText ?? 0;
+		interfaceGroup.addChild(container);
+		moduleState = createState(container);
+	}
+	
+	return moduleState;
 }
 
 /**
  * Build the persistent renderer state, including text styles and the shared label container.
- * @param {PIXI.Container} parkingContainer - The interface-layer container that owns the state.
+ * @param {PIXI.Container} container - The container that owns the state.
  * @returns {object} State bag with UI elements and cached measurement metadata.
  */
-function createState(interfaceContainer) {
+function createState(container) {
 	const baseStyle = BASE_TEXT_STYLE_PROPERTIES();
 
 	const createLabel = (text, anchorX, anchorY, overrides = {}) => {
-
-		// using PreciseText for better internal resolution.
 		const label = new PreciseText(text, { ...baseStyle, ...overrides });
 		label.anchor.set(anchorX, anchorY);
 		label.resolution = 4;
@@ -192,7 +198,6 @@ function createState(interfaceContainer) {
 
 	const distanceText = createLabel("", 0.5, 1.00, DISTANCE_TEXT_STYLE_PROPERTIES);
 	
-	// ruler-combined icon
 	const iconText = createLabel("\uf546", 0.5, 1.15, ICON_TEXT_STYLE_PROPERTIES); 
 
 	const tokenHudContainer = new PIXI.Container();
@@ -201,10 +206,10 @@ function createState(interfaceContainer) {
 	tokenHudContainer.distanceText = distanceText;
 	tokenHudContainer.iconText = iconText;
 
-	interfaceContainer.addChild(tokenHudContainer);
+	container.addChild(tokenHudContainer);
 
 	return {
-		interfaceContainer,
+		container,
 		tokenHudContainer,
 		distanceText,
 		iconText,
@@ -222,7 +227,6 @@ function createState(interfaceContainer) {
 function isEnabled() {
 	if (!canvas?.ready) return false;
 	if (!!game.combats?.active) return true;
-	// Read cached flag from the module instance to avoid repeated settings lookups.
 	return game.modules.get("instant-range").instance.settings.allowHoverOutOfCombat;
 }
 
@@ -246,7 +250,6 @@ function getUserCharacterToken() {
 	const actor = user.character;
 	if (!actor) return null;
 
-	// Actor#getActiveTokens(linked?: boolean, document?: boolean)
 	const tokens = actor.getActiveTokens(false, false);
 	return tokens.length === 1 ? tokens[0] : null;
 }
@@ -311,8 +314,7 @@ function getBestPathBetween(sourceToken, sourceElevation, targetToken, targetEle
  */
 function renderNow(state) {
 	const working = state ?? getState();
-	if (!working) return;
-	if (!isEnabled()) return clear();
+	if (!working || !isEnabled()) return clear();
 
 	const controlled = getControlledToken() ?? getUserCharacterToken();
 	const hoveredId = working.hoveredTokenId;
@@ -322,7 +324,6 @@ function renderNow(state) {
 	if (!target || controlled === target) return clear();
 
 	const measurement = getMeasurement(working, controlled, target);
-
 	updateLabel(working, measurement, target);
 	showLabel(working);
 }
@@ -424,7 +425,6 @@ function updateLabel(state, measurement, targetToken) {
 	const gap = Math.max(8, Math.round(distanceText.height * 0.2));
 	const totalWidth = iconText.width + gap + distanceText.width;
 
-	// Horizontally center the icon + distance text combo, and vertically align their centers.
 	const iconX = (-totalWidth / 2) + (iconText.width / 2);
 	const distanceX = iconX + (iconText.width / 2) + gap + (distanceText.width / 2);
 
@@ -461,8 +461,6 @@ function showLabel(state) {
  */
 function restoreTooltip(tokenId) {
 	if (!tokenId) throw new Error("Instant Range: missing token id when attempting to restore tooltip");
-	// Get the token, and refresh the tooltip.
 	const token = canvas.tokens.placeables.find(tk => tk.id === tokenId);
-	// Token may be gone (deleted or scene change); skip in that lifecycle case.
 	if (token) token._refreshTooltip();
 }
