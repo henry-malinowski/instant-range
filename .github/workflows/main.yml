@@ -15,8 +15,7 @@
 #
 #   - Are all the proper files and directories being included in the release's
 #     module archive ("module.zip")?
-#     Check that the correct files are being passed to the `zip` command run
-#     in the "Create Module Archive" step below.
+#     Check the archiveFiles array in build.ts to see which files are included.
 #
 #   - Is the release tag the proper format?
 #     See the comments for the "Extract Version From Tag" step below.
@@ -88,28 +87,6 @@ jobs:
           WRITE_MANIFEST: true
         run: bun run build:release
 
-      # Create a "module.zip" archive containing all the module's required files.
-      - name: Create Module Archive
-        run: |
-          # Note that `zip` will only emit warnings when a file or directory
-          # doesn't exist, it will not fail.
-          zip                                    \
-            `# Options`                          \
-            --recurse-paths                      \
-            `# The name of the output file`      \
-             ./module.zip                        \
-            `# The files that will be included.` \
-            module.json                          \
-            CHANGELOG.md                         \
-            LICENSE                              \
-            templates/                           \
-            dist/                                \
-            lang/                                \
-            assets/
-          # Don't forget to add a backslash at the end of the line for any
-          # additional files or directories!
-
-      # Update the GitHub release with the manifest and module archive files.
       - name: Update Release With Files
         id: create_version_release
         uses: ncipollo/release-action@v1

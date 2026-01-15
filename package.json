@@ -11,7 +11,9 @@
     "format:check": "prettier --check src/"
   },
   "devDependencies": {
+    "@types/archiver": "^7.0.0",
     "@types/bun": "latest",
+    "archiver": "^7.0.1",
     "fvtt-types": "github:League-of-Foundry-Developers/foundry-vtt-types#main",
     "prettier": "^3.8.0",
     "typescript": "^5.9.3"

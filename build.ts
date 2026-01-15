@@ -4,8 +4,11 @@ import {
   mkdirSync,
   rmSync,
   existsSync,
+  createWriteStream,
+  statSync,
 } from "node:fs";
 import { join } from "node:path";
+import archiver from "archiver";
 
 /**
  * Always builds with the parameters (minified, sourcemap, etc.).
@@ -23,7 +26,6 @@ const TEMP_DIR = "dist-release-temp";
 const REAL_DIST = "dist";
 const WRITE_MANIFEST = process.env.WRITE_MANIFEST === "true";
 
-// For release builds, read release values from environment
 let RELEASE_VERSION: string | undefined;
 let RELEASE_PROJECT_URL: string | undefined;
 let RELEASE_MANIFEST_URL: string | undefined;
@@ -74,13 +76,11 @@ if (isRelease) {
   console.log(`Building to: ${outputDir}`);
 }
 
-// Clean/create output directory
 if (existsSync(outputDir)) {
   rmSync(outputDir, { recursive: true, force: true });
 }
 mkdirSync(outputDir, { recursive: true });
 
-// Build JavaScript bundle (always minified, same as release)
 console.log("Building JavaScript bundle...");
 const buildResult = await Bun.build({
   entrypoints: ["./src/instant-range.ts"],
@@ -101,11 +101,16 @@ if (!buildResult.success) {
   process.exit(1);
 }
 
-// Normalize sourcemap paths (replace backslashes with forward slashes)
-// This fixes Windows devtools display issue where paths appear flattened
+// Normalize sourcemap paths - fixes Windows devtools display issue where paths appear flattened
 const mapPath = join(outputDir, "instant-range.js.map");
 if (existsSync(mapPath)) {
-  const mapContent = JSON.parse(readFileSync(mapPath, "utf8"));
+  let mapContent: { sources?: unknown[] };
+  try {
+    mapContent = JSON.parse(readFileSync(mapPath, "utf8"));
+  } catch (err) {
+    console.warn("Failed to parse sourcemap, skipping normalization:", err);
+    mapContent = {};
+  }
   if (Array.isArray(mapContent.sources)) {
     mapContent.sources = mapContent.sources.map((s) =>
       typeof s === "string" ? s.replace(/\\/g, "/") : s,
@@ -114,10 +119,16 @@ if (existsSync(mapPath)) {
   }
 }
 
-// Build CSS if it exists (optional, only for release builds)
+// Build CSS (optional, only for release builds)
 let cssOutputPath: string | null = null;
 if (isRelease) {
-  const moduleJson = JSON.parse(readFileSync("module.json", "utf8"));
+  let moduleJson: { styles?: string[] };
+  try {
+    moduleJson = JSON.parse(readFileSync("module.json", "utf8"));
+  } catch (err) {
+    console.error("Failed to parse module.json:", err);
+    process.exit(1);
+  }
   if (moduleJson.styles && moduleJson.styles.length > 0) {
     const cssEntry = moduleJson.styles[0];
     console.log(`Building CSS from: ${cssEntry}`);
@@ -134,7 +145,9 @@ if (isRelease) {
         .split("/")
         .pop()
         ?.replace(/\.css$/, "");
-      cssOutputPath = `dist/${cssBasename}.min.css`;
+      if (cssBasename) {
+        cssOutputPath = `${outputDir}/${cssBasename}.min.css`;
+      }
     } else {
       console.warn("CSS build failed (non-fatal):");
       for (const log of cssBuildResult.logs) {
@@ -146,16 +159,21 @@ if (isRelease) {
   }
 }
 
-// For release builds, rewrite module.json
 if (isRelease && manifestOutputPath) {
-  const moduleJson = JSON.parse(readFileSync("module.json", "utf8"));
+  let moduleJson: { styles?: string[]; [key: string]: unknown };
+  try {
+    moduleJson = JSON.parse(readFileSync("module.json", "utf8"));
+  } catch (err) {
+    console.error("Failed to parse module.json:", err);
+    process.exit(1);
+  }
   const modifiedManifest = {
     ...moduleJson,
     version: RELEASE_VERSION!,
     url: RELEASE_PROJECT_URL!,
     manifest: RELEASE_MANIFEST_URL!,
     download: RELEASE_DOWNLOAD_URL!,
-    esmodules: ["dist/instant-range.js"],
+    esmodules: [`${outputDir}/instant-range.js`],
   };
 
   if (cssOutputPath) {
@@ -165,23 +183,67 @@ if (isRelease && manifestOutputPath) {
     modifiedManifest.styles = moduleJson.styles;
   }
 
-  // Write modified manifest
   writeFileSync(
     manifestOutputPath,
     JSON.stringify(modifiedManifest, null, 2) + "\n",
   );
-  console.log(`✓ Manifest written to: ${manifestOutputPath}`);
+  console.log(`Manifest written to: ${manifestOutputPath}`);
+
+  // Create module.zip archive
+  console.log("Creating module archive...");
+  const zipPath = "module.zip";
+  const output = createWriteStream(zipPath);
+  const archive = archiver("zip", { zlib: { level: 9 } });
+
+  output.on("close", () => {
+    console.log(
+      `Module archive created: ${zipPath} (${archive.pointer()} bytes)`,
+    );
+  });
+
+  archive.on("error", (err) => {
+    console.error("Archive error:", err);
+    process.exit(1);
+  });
+
+  archive.pipe(output);
+
+  // Files and directories to include in the archive
+  const archiveFiles = [
+    "module.json",
+    "CHANGELOG.md",
+    "LICENSE",
+    "templates/",
+    "dist/",
+    "lang/",
+    "assets/",
+  ];
+
+  for (const file of archiveFiles) {
+    const filePath = file.replace(/\/$/, ""); // Remove trailing slash for existsSync
+    if (existsSync(filePath)) {
+      const stats = statSync(filePath);
+      if (stats.isDirectory()) {
+        archive.directory(file, file);
+      } else {
+        archive.file(file, { name: file });
+      }
+    } else {
+      console.warn(`Warning: ${file} not found, skipping...`);
+    }
+  }
+
+  await archive.finalize();
 }
 
-console.log(`✓ Build complete!`);
+console.log(`Build complete!`);
 
 if (isRelease && !WRITE_MANIFEST) {
   console.log(`\nTo write to real locations, run with: WRITE_MANIFEST=true`);
   console.log(`Temp files are in: ${TEMP_DIR}/`);
 } else if (isRelease) {
-  // Clean up temp directory if it exists
   if (existsSync(TEMP_DIR)) {
     rmSync(TEMP_DIR, { recursive: true, force: true });
   }
-  console.log(`✓ Files written to: ${REAL_DIST}/`);
+  console.log(`Files written to: ${REAL_DIST}/`);
 }
