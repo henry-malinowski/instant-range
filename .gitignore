@@ -17,3 +17,12 @@ logs/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Bun
+bun.lock

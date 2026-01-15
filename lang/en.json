@@ -1,13 +1,13 @@
 {
   "instant-range": {
     "settings": {
-      "allowHoverOutOfCombat": {
-        "name": "Allow hover out of combat",
-        "hint": "If enabled, shows distance to hovered token even when no combat is active."
+      "hoverOnlyInCombat": {
+        "name": "Hover only in combat",
+        "hint": "Only show distance to hovered token when combat is active."
       },
-      "realtimeUpdate": {
-        "name": "Real-time update",
-        "hint": "Update measurement as often as required (may slightly impact performance while moving)."
+      "refreshThrottleMs": {
+        "name": "Refresh throttle (ms)",
+        "hint": "Limit how often distance labels refresh during highlightObject interactions. 0 disables throttling."
       }
     },
     "warnings": {

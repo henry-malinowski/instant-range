@@ -1,13 +1,13 @@
 {
   "instant-range": {
     "settings": {
-      "allowHoverOutOfCombat": {
-        "name": "Permitir la medición fuera de combate",
-        "hint": "Si está habilitado, muestra la distancia al token sobre el que se pasa el cursor, incluso cuando no hay combate activo."
+      "hoverOnlyInCombat": {
+        "name": "Medición solo en combate",
+        "hint": "Solo muestra la distancia al token sobre el que se pasa el cursor cuando hay combate activo."
       },
-      "realtimeUpdate": {
-        "name": "Actualización en tiempo real",
-        "hint": "Actualiza la medición tan a menudo como sea necesario (puede afectar ligeramente el rendimiento al moverse)."
+      "refreshThrottleMs": {
+        "name": "Límite de actualización (ms)",
+        "hint": "Limita con qué frecuencia se actualizan las etiquetas de distancia durante las interacciones de highlightObjects. 0 desactiva el límite."
       }
     },
     "warnings": {
