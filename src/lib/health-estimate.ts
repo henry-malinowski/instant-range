@@ -1,4 +1,4 @@
-import type { TokenWithHealthEstimate } from "../types/healthEstimate.js";
+import type { TokenWithHealthEstimate } from "health-estimate-types";
 
 /**
  * Computes vertical offset to avoid overlapping Health Estimate module UI.

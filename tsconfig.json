@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "types": ["fvtt-types/lenient"],
+    "types": [
+      "fvtt-types/lenient",
+      "libwrapper-types",
+      "health-estimate-types"
+    ],
     "lib": ["ESNext", "DOM"],
     "target": "ESNext",
     "module": "ESNext",
