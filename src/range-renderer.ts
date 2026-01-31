@@ -238,14 +238,25 @@ export class InstantRangeRenderer {
     token: foundry.canvas.placeables.Token,
     flags: Record<string, boolean> = {},
   ): void {
-    if (!didTokenMove(flags)) return;
     if (token.isPreview) return;
     if (!token.id) return;
 
     const triggers = this.labelRegistry.getTriggers(token.id);
     if (!triggers) return;
 
-    this.labelRegistry.refreshLabel(token);
+    if (didTokenMove(flags)) {
+      this.labelRegistry.refreshLabel(token);
+      return;
+    }
+
+    if (game.healthEstimate?.position !== "a") return;
+
+    // Defer to allow health-estimate to update token.healthEstimate.
+    queueMicrotask(() => {
+      if (this.labelRegistry.getTriggers(token.id)) {
+        this.labelRegistry.refreshLabel(token);
+      }
+    });
   }
 
   /**
@@ -393,6 +404,12 @@ export class InstantRangeRenderer {
         );
       }
       this.labelRegistry.refreshAllActiveLabels(tokens);
+      if (game.healthEstimate?.position === "a") {
+        // Defer to allow health-estimate to update token overlays.
+        queueMicrotask(() => {
+          this.labelRegistry.refreshAllActiveLabels(tokens);
+        });
+      }
     } else {
       // Deassert only HIGHLIGHT_OBJECTS; keep hover/target triggers intact.
       this.labelRegistry.clearTriggerFromAllLabels(
