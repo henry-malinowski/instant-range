@@ -1,3 +1,7 @@
+## v3.0.1
+- Fixed issue where the distance label didn't correctly include the derived Y offset for health estimate.
+- Shrunk the size of the distance icon and text, to be less obtrusive. More customization coming in the future, this is just a stop gap.
+
 ## v3.0.0
 
 - Fixed bug where hovering didn't occur after a scene switch. (issue #9)

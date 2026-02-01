@@ -2,7 +2,8 @@
  * Measurement result with formatted text and distance data.
  */
 export interface MeasurementResult {
-  text: string;
+  distanceValue: string;
+  units: string;
   distance: number;
   sourceElevation: number;
   targetElevation: number;
@@ -63,10 +64,12 @@ export function measureDistance(
 
   const distance = result.distance;
   const roundedDistance = Math.round(distance * 100) / 100;
-  const formattedText = ` ${roundedDistance} ${gridLayer.units}`.trim();
+  const distanceValue = String(roundedDistance);
+  const units = gridLayer.units;
 
   return {
-    text: formattedText,
+    distanceValue,
+    units,
     distance,
     sourceElevation,
     targetElevation,
