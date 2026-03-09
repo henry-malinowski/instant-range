@@ -23,6 +23,3 @@ node_modules/
 
 # Build output
 dist/
-
-# Bun
-bun.lock
