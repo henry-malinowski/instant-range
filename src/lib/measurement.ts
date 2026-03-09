@@ -199,11 +199,7 @@ function getOccupiedCenters(
 
   const occupiedCenters = [];
   for (const gridOffset of occupiedOffsets) {
-    // getOccupiedGridSpaceOffsets() returns a type incompatible with getCenterPoint()'s expected parameter
-    // according to fvtt-types, but they are compatible at runtime.
-    const gridCenterPoint = gridLayer.getCenterPoint(
-      gridOffset as unknown as Parameters<typeof gridLayer.getCenterPoint>[0],
-    );
+    const gridCenterPoint = gridLayer.getCenterPoint(gridOffset);
     occupiedCenters.push({
       x: gridCenterPoint.x,
       y: gridCenterPoint.y,
