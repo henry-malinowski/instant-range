@@ -6,7 +6,7 @@
     "build": "bun build.ts",
     "build:release": "bun build.ts --release",
     "watch": "bun build ./src/instant-range.ts --outdir ./dist --target browser --format esm --sourcemap=linked --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "format:fix": "oxfmt",
     "format:check": "oxfmt --check",
     "lint": "oxlint",
@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/archiver": "^7.0.0",
     "@types/bun": "latest",
+    "@typescript/native-preview": "latest",
     "archiver": "^7.0.1",
     "fallow": "^2.54.2",
     "fvtt-types": "github:League-of-Foundry-Developers/foundry-vtt-types#main",
@@ -22,7 +23,6 @@
     "libwrapper-types": "github:henry-malinowski/libwrapper-types#master",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
-    "oxlint-plugin-complexity": "^2.1.1",
-    "typescript": "^5.9.3"
+    "oxlint-plugin-complexity": "^2.1.1"
   }
 }
