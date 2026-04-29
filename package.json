@@ -23,6 +23,7 @@
     "libwrapper-types": "github:henry-malinowski/libwrapper-types#master",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
-    "oxlint-plugin-complexity": "^2.1.1"
+    "oxlint-plugin-complexity": "^2.1.1",
+    "oxlint-tsgolint": "^0.22.1"
   }
 }
