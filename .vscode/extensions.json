@@ -1,3 +1,3 @@
 {
-	"recommendations": ["lokalise.i18n-ally", "esbenp.prettier-vscode"]
+  "recommendations": ["lokalise.i18n-ally", "oxc.oxc-vscode", "fallow-rs.fallow-vscode"]
 }
