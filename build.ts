@@ -1,3 +1,5 @@
+/// <reference types="bun" />
+
 import {
   readFileSync,
   writeFileSync,
