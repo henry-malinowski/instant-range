@@ -37,35 +37,19 @@ if (isRelease) {
   RELEASE_MANIFEST_URL = process.env.RELEASE_MANIFEST_URL || "";
   RELEASE_DOWNLOAD_URL = process.env.RELEASE_DOWNLOAD_URL || "";
 
-  if (
-    !RELEASE_VERSION ||
-    !RELEASE_PROJECT_URL ||
-    !RELEASE_MANIFEST_URL ||
-    !RELEASE_DOWNLOAD_URL
-  ) {
+  if (!RELEASE_VERSION || !RELEASE_PROJECT_URL || !RELEASE_MANIFEST_URL || !RELEASE_DOWNLOAD_URL) {
     console.error("Missing required environment variables for release build:");
     console.error("  RELEASE_VERSION:", RELEASE_VERSION || "(missing)");
     console.error("  RELEASE_PROJECT_URL:", RELEASE_PROJECT_URL || "(missing)");
-    console.error(
-      "  RELEASE_MANIFEST_URL:",
-      RELEASE_MANIFEST_URL || "(missing)",
-    );
-    console.error(
-      "  RELEASE_DOWNLOAD_URL:",
-      RELEASE_DOWNLOAD_URL || "(missing)",
-    );
+    console.error("  RELEASE_MANIFEST_URL:", RELEASE_MANIFEST_URL || "(missing)");
+    console.error("  RELEASE_DOWNLOAD_URL:", RELEASE_DOWNLOAD_URL || "(missing)");
     process.exit(1);
   }
 }
 
-const outputDir =
-  isRelease && WRITE_MANIFEST ? REAL_DIST : isRelease ? TEMP_DIR : REAL_DIST;
+const outputDir = isRelease && WRITE_MANIFEST ? REAL_DIST : isRelease ? TEMP_DIR : REAL_DIST;
 const manifestOutputPath =
-  isRelease && WRITE_MANIFEST
-    ? "module.json"
-    : isRelease
-      ? "module.json.release"
-      : null;
+  isRelease && WRITE_MANIFEST ? "module.json" : isRelease ? "module.json.release" : null;
 
 if (isRelease) {
   console.log(`Building release to: ${outputDir}`);
@@ -183,10 +167,7 @@ if (isRelease && manifestOutputPath) {
     modifiedManifest.styles = moduleJson.styles;
   }
 
-  writeFileSync(
-    manifestOutputPath,
-    JSON.stringify(modifiedManifest, null, 2) + "\n",
-  );
+  writeFileSync(manifestOutputPath, JSON.stringify(modifiedManifest, null, 2) + "\n");
   console.log(`Manifest written to: ${manifestOutputPath}`);
 
   // Create module.zip archive
@@ -196,9 +177,7 @@ if (isRelease && manifestOutputPath) {
   const archive = archiver("zip", { zlib: { level: 9 } });
 
   output.on("close", () => {
-    console.log(
-      `Module archive created: ${zipPath} (${archive.pointer()} bytes)`,
-    );
+    console.log(`Module archive created: ${zipPath} (${archive.pointer()} bytes)`);
   });
 
   archive.on("error", (err) => {

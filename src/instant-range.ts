@@ -104,8 +104,7 @@ function onceSetup() {
     );
   } catch (err: unknown) {
     console.error(err);
-    errorState.wrapperError =
-      err instanceof Error ? err : new Error(String(err));
+    errorState.wrapperError = err instanceof Error ? err : new Error(String(err));
     return;
   }
 

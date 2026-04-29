@@ -37,10 +37,7 @@ export class MeasurementCache {
     // Generate ordered cache key (exploits bidirectional symmetry)
     const sourceId = sourceToken.sourceId;
     const targetId = targetToken.sourceId;
-    const cacheKey =
-      sourceId < targetId
-        ? `${sourceId}|${targetId}`
-        : `${targetId}|${sourceId}`;
+    const cacheKey = sourceId < targetId ? `${sourceId}|${targetId}` : `${targetId}|${sourceId}`;
 
     // Compute current delta vector (using absolute values since distance is symmetric)
     const deltaX = Math.abs(targetToken.center.x - sourceToken.center.x);

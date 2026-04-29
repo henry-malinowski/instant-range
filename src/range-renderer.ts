@@ -58,8 +58,7 @@ export class InstantRangeRenderer {
     // Stable hook callback so we can swap throttling at runtime without re-registering hooks.
     this._onCanvasPanBound = this.onCanvasPan.bind(this);
     // Throttled refresh for performance-sensitive calls (pan, source dragging)
-    this.refreshAllActiveLabelsThrottled =
-      this.refreshAllActiveLabels.bind(this);
+    this.refreshAllActiveLabelsThrottled = this.refreshAllActiveLabels.bind(this);
     this.setRefreshThrottleMs(instantRangeState.settings.refreshThrottleMs);
 
     // Initialize containers immediately since canvas is guaranteed ready
@@ -80,8 +79,7 @@ export class InstantRangeRenderer {
         ms,
       );
     } else {
-      this.refreshAllActiveLabelsThrottled =
-        this.refreshAllActiveLabels.bind(this);
+      this.refreshAllActiveLabelsThrottled = this.refreshAllActiveLabels.bind(this);
     }
   }
 
@@ -136,20 +134,11 @@ export class InstantRangeRenderer {
       deleteCombat: Hooks.on("deleteCombat", this.onDeleteCombat.bind(this)),
       deleteToken: Hooks.on("deleteToken", this.onDeleteToken.bind(this)),
       destroyToken: Hooks.on("destroyToken", this.onDestroyToken.bind(this)),
-      highlightObjects: Hooks.on(
-        "highlightObjects",
-        this.onHighlightObjects.bind(this),
-      ),
+      highlightObjects: Hooks.on("highlightObjects", this.onHighlightObjects.bind(this)),
       hoverToken: Hooks.on("hoverToken", this.onHoverToken.bind(this)),
       // Register source handler first to preserve prior execution order.
-      refreshTokenSource: Hooks.on(
-        "refreshToken",
-        this.onRefreshSourceToken.bind(this),
-      ),
-      refreshTokenTarget: Hooks.on(
-        "refreshToken",
-        this.onRefreshTargetToken.bind(this),
-      ),
+      refreshTokenSource: Hooks.on("refreshToken", this.onRefreshSourceToken.bind(this)),
+      refreshTokenTarget: Hooks.on("refreshToken", this.onRefreshTargetToken.bind(this)),
       targetToken: Hooks.on("targetToken", this.onTargetToken.bind(this)),
       updateCombat: Hooks.on("updateCombat", this.onUpdateCombat.bind(this)),
     };
@@ -265,10 +254,7 @@ export class InstantRangeRenderer {
    * @param {boolean} controlled Whether the Placeable Token is selected or not.
    * @see https://foundryvtt.com/api/functions/hookEvents.controlObject.html
    */
-  onControlToken(
-    token: foundry.canvas.placeables.Token,
-    controlled: boolean,
-  ): void {
+  onControlToken(token: foundry.canvas.placeables.Token, controlled: boolean): void {
     if (!controlled) {
       this.state.sourceToken = null;
       this.onGatePossiblyChanged();
@@ -298,10 +284,7 @@ export class InstantRangeRenderer {
     this.labelRegistry.deleteLabel(deletedId);
 
     const controlled = getSourceToken();
-    if (
-      this.state.hoveredTarget?.id === deletedId ||
-      (controlled && controlled.id === deletedId)
-    ) {
+    if (this.state.hoveredTarget?.id === deletedId || (controlled && controlled.id === deletedId)) {
       this.state.hoveredTarget = null;
     }
   }
@@ -322,50 +305,42 @@ export class InstantRangeRenderer {
 
   /**
    * Clear UI on combat updates only if we currently have a hover target.
-   * @param {Combat} document - The Combat document that was updated
-   * @param {object} changed - Differential data that was used to update the document
-   * @param {Partial<DatabaseUpdateOperation>} options - Additional options which modified the update request
-   * @param {string} userId - The ID of the User who triggered the update workflow
+   * @param {Combat} _document - The Combat document that was updated
+   * @param {object} _changed - Differential data that was used to update the document
+   * @param {Partial<DatabaseUpdateOperation>} _options - Additional options which modified the update request
+   * @param {string} _userId - The ID of the User who triggered the update workflow
    * @see https://foundryvtt.com/api/functions/hookEvents.updateDocument.html
    */
   onUpdateCombat(
-    document: foundry.documents.Combat,
-    changed: object,
-    options: object,
-    userId: string,
+    _document: foundry.documents.Combat,
+    _changed: object,
+    _options: object,
+    _userId: string,
   ): void {
     this.onGatePossiblyChanged();
   }
 
   /**
    * Clear UI when combat is deleted only if we currently have a hover target.
-   * @param {foundry.documents.Combat} document The Combat document that was deleted
-   * @param {object} options Additional options which modified the deletion request
-   * @param {string} userId The ID of the User who triggered the deletion workflow
+   * @param {foundry.documents.Combat} _document The Combat document that was deleted
+   * @param {object} _options Additional options which modified the deletion request
+   * @param {string} _userId The ID of the User who triggered the deletion workflow
    * @description The hook name "deleteCombat" is generated from the generic "deleteDocument" hook via document name substitution.
    * @see https://foundryvtt.com/api/functions/hookEvents.deleteDocument.html
    */
-  onDeleteCombat(
-    document: foundry.documents.Combat,
-    options: object,
-    userId: string,
-  ): void {
+  onDeleteCombat(_document: foundry.documents.Combat, _options: object, _userId: string): void {
     this.onGatePossiblyChanged();
   }
 
   /**
    * Combat created can flip the isEnabled gate.
-   * @param {foundry.documents.Combat} document The Combat document that was created
-   * @param {object} options Additional options which modified the creation request
-   * @param {string} userId The ID of the User who triggered the creation workflow
+   * @param {foundry.documents.Combat} _document The Combat document that was created
+   * @param {object} _options Additional options which modified the creation request
+   * @param {string} _userId The ID of the User who triggered the creation workflow
    * @description The hook name "createCombat" is generated from the generic "createDocument" hook via document name substitution.
    * @see https://foundryvtt.com/api/functions/hookEvents.createDocument.html
    */
-  onCreateCombat(
-    document: foundry.documents.Combat,
-    options: object,
-    userId: string,
-  ): void {
+  onCreateCombat(_document: foundry.documents.Combat, _options: object, _userId: string): void {
     this.onGatePossiblyChanged();
   }
 
@@ -394,14 +369,9 @@ export class InstantRangeRenderer {
       for (const token of tokens) {
         if (token.isPreview) continue;
         if (source && token.id === source.id) continue;
-        this.labelRegistry.setTrigger(
-          token,
-          LABEL_TRIGGER.HIGHLIGHT_OBJECTS,
-          true,
-          {
-            refresh: false,
-          },
-        );
+        this.labelRegistry.setTrigger(token, LABEL_TRIGGER.HIGHLIGHT_OBJECTS, true, {
+          refresh: false,
+        });
       }
       this.labelRegistry.refreshAllActiveLabels(tokens);
       if (game.healthEstimate?.position === "a") {
@@ -412,10 +382,7 @@ export class InstantRangeRenderer {
       }
     } else {
       // Deassert only HIGHLIGHT_OBJECTS; keep hover/target triggers intact.
-      this.labelRegistry.clearTriggerFromAllLabels(
-        LABEL_TRIGGER.HIGHLIGHT_OBJECTS,
-        tokens,
-      );
+      this.labelRegistry.clearTriggerFromAllLabels(LABEL_TRIGGER.HIGHLIGHT_OBJECTS, tokens);
     }
   }
 
@@ -426,9 +393,7 @@ export class InstantRangeRenderer {
   refreshAllActiveLabels() {
     const newBaseSource = getBaseSourceToken();
     const sourceChanged =
-      !this.state.sourceToken ||
-      !newBaseSource ||
-      this.state.sourceToken.id !== newBaseSource.id;
+      !this.state.sourceToken || !newBaseSource || this.state.sourceToken.id !== newBaseSource.id;
 
     if (sourceChanged) {
       this.state.sourceToken = newBaseSource;
@@ -450,9 +415,7 @@ export class InstantRangeRenderer {
     this.refreshAllActiveLabels();
   }
 
-  private clearHoverState(
-    token?: foundry.canvas.placeables.Token | null,
-  ): void {
+  private clearHoverState(token?: foundry.canvas.placeables.Token | null): void {
     const target = token ?? this.state.hoveredTarget;
     this.state.hoveredTarget = null;
     if (target) {

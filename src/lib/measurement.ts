@@ -42,25 +42,12 @@ interface InternalMeasurement {
 export function measureDistance(
   sourceToken: foundry.canvas.placeables.Token,
   targetToken: foundry.canvas.placeables.Token,
-  {
-    sourceElevation,
-    targetElevation,
-  }: { sourceElevation: number; targetElevation: number },
+  { sourceElevation, targetElevation }: { sourceElevation: number; targetElevation: number },
 ): MeasurementResult {
   const gridLayer = canvas.grid!;
   const { result } = gridLayer.isGridless
-    ? measureCenterToCenter(
-        sourceToken,
-        sourceElevation,
-        targetToken,
-        targetElevation,
-      )
-    : measureNearestOccupiedPoints(
-        sourceToken,
-        sourceElevation,
-        targetToken,
-        targetElevation,
-      );
+    ? measureCenterToCenter(sourceToken, sourceElevation, targetToken, targetElevation)
+    : measureNearestOccupiedPoints(sourceToken, sourceElevation, targetToken, targetElevation);
 
   const distance = result.distance;
   const roundedDistance = Math.round(distance * 100) / 100;
@@ -103,10 +90,7 @@ function measureCenterToCenter(
     y: targetToken.center.y,
     elevation: targetElevation,
   };
-  const measurementResult = grid.measurePath(
-    [originPoint, destinationPoint],
-    {},
-  );
+  const measurementResult = grid.measurePath([originPoint, destinationPoint], {});
   return {
     origin: originPoint,
     dest: destinationPoint,
@@ -148,10 +132,7 @@ function measureNearestOccupiedPoints(
 
   for (const sourcePoint of sourceOccupiedPoints) {
     for (const targetPoint of targetOccupiedPoints) {
-      const measurementResult = grid.measurePath(
-        [sourcePoint, targetPoint],
-        {},
-      );
+      const measurementResult = grid.measurePath([sourcePoint, targetPoint], {});
       const measuredDistance = measurementResult.distance;
       if (measuredDistance === 0)
         return {
@@ -184,10 +165,7 @@ function measureNearestOccupiedPoints(
  * @see https://foundryvtt.com/api/classes/foundry.documents.TokenDocument.html#getoccupiedgridspaceoffsets
  * @see https://foundryvtt.com/api/classes/foundry.canvas.placeables.Token.html#getcenterpoint
  */
-function getOccupiedCenters(
-  token: foundry.canvas.placeables.Token,
-  elevation: number,
-): Point3D[] {
+function getOccupiedCenters(token: foundry.canvas.placeables.Token, elevation: number): Point3D[] {
   const gridLayer = canvas.grid!;
   const tokenCenter = {
     x: token.center.x,

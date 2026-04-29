@@ -15,30 +15,19 @@ export function calculateHealthEstimateOffset(
     return 0;
   }
 
-  const tokenHealthEstimate = (targetToken as TokenWithHealthEstimate)
-    .healthEstimate;
-  if (
-    !tokenHealthEstimate?.height ||
-    !tokenHealthEstimate.visible ||
-    !tokenHealthEstimate.style
-  ) {
+  const tokenHealthEstimate = (targetToken as TokenWithHealthEstimate).healthEstimate;
+  if (!tokenHealthEstimate?.height || !tokenHealthEstimate.visible || !tokenHealthEstimate.style) {
     return 0;
   }
 
   if (!canvas?.scene) return 0;
 
-  const gridScale = healthEstimate.scaleToGridSize
-    ? canvas.scene.dimensions.size / 100
-    : 1;
-  const tokenScale = healthEstimate.scaleToTokenSize
-    ? targetToken.document.width
-    : 1;
-  const healthEstimateVisualHeight =
-    tokenHealthEstimate.height * (tokenScale * 0.25);
+  const gridScale = healthEstimate.scaleToGridSize ? canvas.scene.dimensions.size / 100 : 1;
+  const tokenScale = healthEstimate.scaleToTokenSize ? targetToken.document.width : 1;
+  const healthEstimateVisualHeight = tokenHealthEstimate.height * (tokenScale * 0.25);
 
   const healthEstimateBottomY = healthEstimate.height - 2;
-  const healthEstimateTopY =
-    healthEstimate.height - 2 - healthEstimateVisualHeight;
+  const healthEstimateTopY = healthEstimate.height - 2 - healthEstimateVisualHeight;
 
   const overlapThreshold = -28 * gridScale;
   if (healthEstimateBottomY >= overlapThreshold) {

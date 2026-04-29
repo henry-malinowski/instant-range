@@ -93,8 +93,7 @@ export function updateLabel(
 
   const iconX = -totalLabelWidth / 2 + iconText.width / 2;
   const valueX = iconX + iconText.width / 2 + iconGap + distanceValue.width / 2;
-  const unitsX =
-    valueX + distanceValue.width / 2 + unitsGap + unitsText.width / 2;
+  const unitsX = valueX + distanceValue.width / 2 + unitsGap + unitsText.width / 2;
 
   iconText.position.set(iconX, 0);
   distanceValue.position.set(valueX, 0);

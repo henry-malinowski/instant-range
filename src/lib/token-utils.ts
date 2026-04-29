@@ -75,13 +75,9 @@ export function getSourceToken(): foundry.canvas.placeables.Token | null {
  * @see https://pixijs.download/dev/docs/maths.Point.html
  * @see https://pixijs.download/dev/docs/app.Application.html#screen
  */
-export function isTokenVisible(
-  token: foundry.canvas.placeables.Token,
-): boolean {
+export function isTokenVisible(token: foundry.canvas.placeables.Token): boolean {
   if (!token.isVisible || !token.renderable) return false;
-  const tokenCenterGlobal = token.toGlobal(
-    new PIXI.Point(token.w / 2, token.h / 2),
-  );
+  const tokenCenterGlobal = token.toGlobal(new PIXI.Point(token.w / 2, token.h / 2));
   return canvas.app!.screen.contains(tokenCenterGlobal.x, tokenCenterGlobal.y);
 }
 
@@ -90,7 +86,5 @@ export function isTokenVisible(
  * @param {Record<string, boolean>} flags - Render flags indicating what was refreshed.
  */
 export function didTokenMove(flags: Record<string, boolean> = {}): boolean {
-  return (
-    !!flags.refreshPosition || !!flags.refreshElevation || !!flags.refreshSize
-  );
+  return !!flags.refreshPosition || !!flags.refreshElevation || !!flags.refreshSize;
 }

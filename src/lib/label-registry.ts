@@ -1,9 +1,4 @@
-import {
-  createLabelContainer,
-  hideLabel,
-  updateLabel,
-  type LabelContainer,
-} from "./label.ts";
+import { createLabelContainer, hideLabel, updateLabel, type LabelContainer } from "./label.ts";
 import { type MeasurementCache } from "./measurement-cache.ts";
 
 export const LABEL_TRIGGER = {
@@ -154,9 +149,7 @@ export class LabelRegistry {
 
     const labelRecord = this.getOrCreateLabelRecord(token);
     const previousTriggers = labelRecord.triggers;
-    labelRecord.triggers = active
-      ? previousTriggers | trigger
-      : previousTriggers & ~trigger;
+    labelRecord.triggers = active ? previousTriggers | trigger : previousTriggers & ~trigger;
 
     const shouldRefresh = options.refresh ?? true;
     if (shouldRefresh) this.refreshLabel(token);
@@ -204,9 +197,7 @@ export class LabelRegistry {
     const tokenBaseId = token.sourceId.replace(/\.preview$/, "");
     const isSameToken =
       sourceToken.id === token.id ||
-      (sourceToken.isPreview &&
-        !token.isPreview &&
-        tokenBaseId === sourceBaseId);
+      (sourceToken.isPreview && !token.isPreview && tokenBaseId === sourceBaseId);
 
     if (isSameToken || !this.isTokenVisible(token)) {
       hideLabel(labelRecord.container);
@@ -216,10 +207,7 @@ export class LabelRegistry {
       return;
     }
 
-    const measurement = this.measurementCache.getMeasurement(
-      sourceToken,
-      token,
-    );
+    const measurement = this.measurementCache.getMeasurement(sourceToken, token);
     updateLabel(labelRecord.container, measurement, token, this.offsetCallback);
     labelRecord.container.visible = true;
 
@@ -243,9 +231,7 @@ export class LabelRegistry {
    * Refresh all labels that currently have at least one active trigger.
    * @param {Token[]} tokensOnCanvas - Array of all tokens currently on the canvas
    */
-  refreshAllActiveLabels(
-    tokensOnCanvas: readonly foundry.canvas.placeables.Token[],
-  ): void {
+  refreshAllActiveLabels(tokensOnCanvas: readonly foundry.canvas.placeables.Token[]): void {
     for (const token of tokensOnCanvas) {
       const labelRecord = this._labelMap.get(token.id);
       if (!labelRecord || !labelRecord.triggers) continue;
