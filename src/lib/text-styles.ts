@@ -24,13 +24,13 @@ export function getBaseTextStyle(): Partial<PIXI.TextStyle> {
 
 /**
  * Get the text style for the ruler icon (Font Awesome icon).
- * @returns {TextStyle} PIXI text style object with Font Awesome 6 Pro font settings
+ * @returns {TextStyle} PIXI text style object with Font Awesome Pro font settings
  */
 export function getIconTextStyle(): Partial<PIXI.TextStyle> & {
   fontSize: number;
 } {
   return {
-    fontFamily: "Font Awesome 6 Pro",
+    fontFamily: ["Font Awesome 7 Pro", "Font Awesome 6 Pro"],
     fontWeight: "900",
     fontSize: BASE_DISTANCE_FONT_SIZE * 0.7,
   };
