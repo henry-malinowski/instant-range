@@ -45,6 +45,11 @@ env:
   # processed by this workflow.
   release_module_url: "https://github.com/${{github.repository}}/releases/download/${{github.event.release.tag_name}}/module.zip"
 
+  # The URL to the manifest associated with the module release being processed
+  # by this workflow. Foundry's package release API expects a version-specific
+  # manifest URL for the release being published.
+  release_manifest_url: "https://github.com/${{github.repository}}/releases/download/${{github.event.release.tag_name}}/module.json"
+
 on:
   # Only run this workflow when a release is published.
   # To modify this workflow when other events occur, see:
@@ -99,3 +104,24 @@ jobs:
           artifacts: "./module.json, ./module.zip"
           tag: ${{ github.event.release.tag_name }}
           body: ${{ github.event.release.body }}
+
+  publish-to-foundry:
+    runs-on: ubuntu-latest
+    needs: build
+    continue-on-error: true
+    env:
+      FVTT_TOKEN: ${{ secrets.FVTT_TOKEN }}
+
+    steps:
+      - name: Download Manifest From Release
+        run: curl -fsSL "${{ env.release_manifest_url }}" -o module.json
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Publish Release To Foundry
+        run: |
+          bunx @ghost-fvtt/foundry-publish@4.0.0 \
+            --manifestPath ./module.json \
+            --manifestURL "${{ env.release_manifest_url }}" \
+            --changelogURL "${{ github.event.release.html_url }}"
