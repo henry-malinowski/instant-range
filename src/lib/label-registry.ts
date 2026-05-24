@@ -76,15 +76,6 @@ export class LabelRegistry {
   }
 
   /**
-   * Get the label record for a token, if it exists.
-   * @param {string} tokenId - The ID of the token
-   * @returns {{container: PIXI.Container, triggers: number} | null} The label record, or null if not found
-   */
-  getLabelRecord(tokenId: string): LabelRecord | null {
-    return this._labelMap.get(tokenId) ?? null;
-  }
-
-  /**
    * Check if a label is currently visible for a token.
    * @param {string} tokenId - The ID of the token
    * @returns {boolean} True if the label exists and is visible
@@ -101,16 +92,6 @@ export class LabelRegistry {
    */
   getTriggers(tokenId: string): number {
     return this._labelMap.get(tokenId)?.triggers || 0;
-  }
-
-  /**
-   * Check if a specific trigger is active for a token's label.
-   * @param {string} tokenId - The ID of the token
-   * @param {number} trigger - The trigger flag to check (from LABEL_TRIGGER)
-   * @returns {boolean} True if the trigger is active
-   */
-  hasTrigger(tokenId: string, trigger: number): boolean {
-    return (this.getTriggers(tokenId) & trigger) !== 0;
   }
 
   /**

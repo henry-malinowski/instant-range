@@ -84,11 +84,4 @@ export class MeasurementCache {
       }
     }
   }
-
-  /**
-   * Clear all cached measurements.
-   */
-  clear(): void {
-    this.#cache.clear();
-  }
 }

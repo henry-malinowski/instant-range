@@ -113,11 +113,3 @@ export function updateLabel(
 export function hideLabel(labelContainer: LabelContainer): void {
   labelContainer.visible = false;
 }
-
-/**
- * Show a label container.
- * @param {PIXI.Container} labelContainer - The label container to show
- */
-export function showLabel(labelContainer: LabelContainer): void {
-  labelContainer.visible = true;
-}
