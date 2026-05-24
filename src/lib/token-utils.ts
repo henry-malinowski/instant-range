@@ -3,7 +3,7 @@
  * @returns {foundry.canvas.placeables.Token|null} The controlled token, or null if zero or multiple tokens are controlled
  * @see https://foundryvtt.com/api/classes/foundry.canvas.layers.TokenLayer.html#controlled
  */
-export function getControlledToken(): foundry.canvas.placeables.Token | null {
+function getControlledToken(): foundry.canvas.placeables.Token | null {
   const controlledTokens = canvas.tokens?.controlled;
   if (!controlledTokens) return null;
 
@@ -17,7 +17,7 @@ export function getControlledToken(): foundry.canvas.placeables.Token | null {
  * @returns {foundry.canvas.placeables.Token|null} The user's character token, or null if unavailable
  * @see https://foundryvtt.com/api/classes/foundry.documents.Actor.html#getactivetokens
  */
-export function getUserCharacterToken(): foundry.canvas.placeables.Token | null {
+function getUserCharacterToken(): foundry.canvas.placeables.Token | null {
   const currentUser = game.user;
   if (currentUser.isGM) return null;
 
