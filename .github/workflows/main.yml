@@ -1,34 +1,3 @@
-# GitHub Actions workflow for creating a new FoundryVTT module release.
-#
-# Useful References:
-#   - https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
-#   - https://docs.github.com/en/actions/learn-github-actions/contexts
-#   - https://docs.github.com/en/actions/learn-github-actions/environment-variables
-#
-# Troubleshooting Checklist:
-#   - Is the module's manifest file valid JSON?
-#     You can test your manifest file using https://jsonlint.com/.
-#
-#   - Does the module's manifest have all the required keys?
-#     See https://foundryvtt.com/article/module-development/#manifest for more
-#     information.
-#
-#   - Are all the proper files and directories being included in the release's
-#     module archive ("module.zip")?
-#     Check the archiveFiles array in build.ts to see which files are included.
-#
-#   - Is the release tag the proper format?
-#     See the comments for the "Extract Version From Tag" step below.
-#
-#   - Is a GitHub release being published?
-#     This workflow will only run when a release is published, not when a
-#     release is updated. Furthermore, note that while a GitHub release will
-#     (by default) create a repository tag, a repository tag will not create
-#     or publish a GitHub release.
-#
-#   - Has the module's entry on FoundryVTT's module administration site
-#     (https://foundryvtt.com/admin) been updated?
-#
 name: Create Module Files For GitHub Release
 
 env:
@@ -51,15 +20,6 @@ env:
   release_manifest_url: "https://github.com/${{github.repository}}/releases/download/${{github.event.release.tag_name}}/module.json"
 
 on:
-  # Only run this workflow when a release is published.
-  # To modify this workflow when other events occur, see:
-  #   - https://docs.github.com/en/actions/using-workflows/triggering-a-workflow
-  #   - https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
-  #   - https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
-  #
-  # Note that some steps may depend on context variables that are only
-  # available for release events, so if you add other events, you may need to
-  # alter other parts of this workflow.
   release:
     types: [published]
 
@@ -77,20 +37,36 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
 
-      - name: Install archiver dependency
-        run: bun add --no-save archiver
+      - name: Install Vite+
+        run: vp install --no-frozen-lockfile --ignore-scripts vite-plus@0.1.22 -- --no-audit --no-fund
 
-      - name: Build Release
-        env:
-          RELEASE_VERSION: ${{ github.event.release.tag_name }}
-          RELEASE_PROJECT_URL: ${{ env.project_url }}
-          RELEASE_MANIFEST_URL: ${{ env.latest_manifest_url }}
-          RELEASE_DOWNLOAD_URL: ${{ env.release_module_url }}
-          WRITE_MANIFEST: true
-        run: bun run build:release
+      - name: Build
+        run: vp build
+
+      - name: Modify Module Manifest With Release-Specific Values
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          jq --arg version "${TAG_NAME#v}" \
+             --arg url "${{ env.project_url }}" \
+             --arg manifest "${{ env.latest_manifest_url }}" \
+             --arg download "${{ env.release_module_url }}" \
+             '.version = $version | .url = $url | .manifest = $manifest | .download = $download' \
+             module.json > module.json.tmp
+          mv module.json.tmp module.json
+
+      - name: Create Module Archive
+        run: |
+          zip                                    \
+            --recurse-paths                      \
+            ./module.zip                         \
+            module.json                          \
+            CHANGELOG.md                         \
+            LICENSE                              \
+            dist/                                \
+            lang/
 
       - name: Update Release With Files
         id: create_version_release
@@ -116,12 +92,12 @@ jobs:
       - name: Download Manifest From Release
         run: curl -fsSL "${{ env.release_manifest_url }}" -o module.json
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node
+        uses: actions/setup-node@v6
 
       - name: Publish Release To Foundry
         run: |
-          bunx @ghost-fvtt/foundry-publish@4.0.0 \
+          npx @ghost-fvtt/foundry-publish@4.0.0 \
             --manifestPath ./module.json \
             --manifestURL "${{ env.release_manifest_url }}" \
             --changelogURL "${{ github.event.release.html_url }}"

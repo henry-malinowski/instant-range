@@ -29,6 +29,18 @@ https://github.com/user-attachments/assets/0f1f5eaf-60e8-4292-9ea1-afe3b575d6a2
 
 To install and use the instant-range module for Foundry Virtual Tabletop, simply paste the following URL into the **Install Module** dialog on the Setup menu of the application.
 
-`https://raw.githubusercontent.com/henry-malinowski/instant-range/main/module.json`
+`https://github.com/henry-malinowski/instant-range/releases/latest/download/module.json`
 
 If you wish to manually install the module, you must clone or extract it into the `Data/modules/instant-range` folder. You may do this by cloning the repository or downloading a zip archive from the [Releases Page](https://github.com/henry-malinowski/instant-range/releases).
+
+## Development
+
+This project uses Vite+ for package management, checks, and builds. The module always runs from built assets, so `vp build` produces the files Foundry loads from `dist/`.
+
+- `vp install` - install dependencies with npm
+- `vp build` - build the `dist/` assets Foundry runs
+- `vp build --watch` - rebuild on changes
+- `vp check` - run formatting, linting, and type checks
+- `vp check --fix` - fix formatting and lint issues where possible
+- `vp lint` / `vp lint --fix` - run Oxlint
+- `vp fmt` / `vp fmt --write` - run Oxfmt
