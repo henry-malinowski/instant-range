@@ -93,7 +93,7 @@ jobs:
         run: curl -fsSL "${{ env.release_manifest_url }}" -o module.json
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
 
       - name: Publish Release To Foundry
         run: |
