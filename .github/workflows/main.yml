@@ -38,7 +38,7 @@ jobs:
           fetch-tags: true
 
       - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1
+        uses: voidzero-dev/setup-vp@v1.15.0
 
       - name: Install Vite+
         run: vp install --no-frozen-lockfile --ignore-scripts vite-plus@0.1.22 -- --no-audit --no-fund
